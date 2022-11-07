@@ -3,9 +3,18 @@
 # 구한 당원값들을 수도요금 조사 sheet의 B3부터 B11에 적용
 
 import openpyxl
+from openpyxl import Workbook
 
 
-def get_invest_water():
+def convert_month(last_month: str) -> str:
+    # input lastmonth is type of string, so convert string to int
+    last_month: int = int(last_month)
+
+    next_month = 1 if last_month == 12 else last_month + 1
+    return str(next_month)
+
+
+def get_invest_water() -> None:
     wb = openpyxl.load_workbook('수도요금(최신버전).xlsx')
     latest_sheet_name = wb.sheetnames[-1]
     invest_water = wb.sheetnames[0]
@@ -34,7 +43,7 @@ def cal_water_tax():
     latest_sheet = wb[latest_sheet_name]
     wb.copy_worksheet(latest_sheet)
     copy_sheet = wb[latest_sheet_name + ' Copy']
-    new_sheet_name = str(int(latest_sheet_name[:2]) + 1)
+    new_sheet_name = convert_month(latest_sheet_name[:2])
     copy_sheet.title = f'{new_sheet_name}월 수도요금 공지'
     print('--------------------------------------------------------------------')
     print('수도요금 자동화 계산기(엑셀자동업데이트)')
@@ -50,17 +59,21 @@ def cal_water_tax():
         copy_sheet[f'B{i + 2}'].value = copy_sheet[f'C{i + 2}'].value
 
     for i in homes:
+        if i == '101':
+            continue
         input_data = input(f'{i} : ')
         input_water.append(input_data)
-
-    for i in range(10):
-        if i == 2:
-            continue
-        copy_sheet[f'C{i + 2}'].value = input_water[i]
-    copy_sheet[f'C4'] = max(input_water)
-
+    print(input_water)
+    for i in range(9):
+        if i < 2:
+            copy_sheet[f'C{i + 2}'].value = input_water[i]
+        else:
+            copy_sheet[f'C{i + 3}'].value = input_water[i]
     print('--------------------------------------------------------------------')
     water_price = input('상하수도 요금을 입력하시오 : ')
     copy_sheet['D13'] = water_price
 
     wb.save('수도요금(최신버전).xlsx')
+
+
+cal_water_tax()
